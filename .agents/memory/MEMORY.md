@@ -1,0 +1,1 @@
+- [Vercel lockfile registry URLs](vercel-lockfile-registry-urls.md) — keep package tarball URLs on the public npm registry for external CI.
