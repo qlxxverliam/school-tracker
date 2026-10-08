@@ -1,1 +1,2 @@
 - [Vercel lockfile registry URLs](vercel-lockfile-registry-urls.md) — keep package tarball URLs on the public npm registry for external CI.
+- [Future location sharing](location-sharing-intent.md) — location tracking is a later feature for both map users, separate from schedule highlights.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CalendarDays,
   ChevronRight,
@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import SchoolMapViewer from "./components/SchoolMapViewer.jsx";
 import {
   formatScheduleTime,
   getDetroitClock,
@@ -48,53 +49,6 @@ function getBlockPlace(block) {
   return "No room";
 }
 
-function MapImage({ schedule, selectedBlock, onSelectBlock, expanded = false }) {
-  const availableRooms = useMemo(() => {
-    const rooms = new Set(schedule.map((block) => block.room ?? block.place).filter(Boolean));
-    return Object.entries(roomLocations).filter(([id]) => rooms.has(id));
-  }, [schedule]);
-
-  const matchingBlock = (roomId) =>
-    schedule.find(
-      (block) =>
-        block.id === selectedBlock?.id &&
-        (block.room ?? block.place) === roomId,
-    ) ??
-    schedule.find((block) => (block.room ?? block.place) === roomId);
-
-  return (
-    <div className="map-frame">
-      <img
-        src="/school-map.jpg"
-        alt="Brandywine Middle/High School tornado safety area floor plan. Classroom markers show scheduled rooms only."
-        draggable="false"
-      />
-      {availableRooms.map(([roomId, room]) => {
-        const block = matchingBlock(roomId);
-        const isActive =
-          selectedBlock &&
-          (selectedBlock.room === roomId || selectedBlock.place === roomId);
-        return (
-          <button
-            key={roomId}
-            type="button"
-            className={`room-marker${isActive ? " active" : ""}`}
-            style={{ "--x": `${room.x}%`, "--y": `${room.y}%` }}
-            aria-label={`Select ${room.label}${isActive ? ", selected" : ""}`}
-            aria-pressed={isActive}
-            title={`${room.label} · select scheduled class`}
-            onClick={() => onSelectBlock(block)}
-          >
-            <span className="marker-core" aria-hidden="true" />
-            <span className="marker-label">{room.label}</span>
-          </button>
-        );
-      })}
-      {expanded && <span className="sr-only">Expanded static reference map</span>}
-    </div>
-  );
-}
-
 export default function App() {
   const [personId, setPersonId] = useState("blake");
   const [clock, setClock] = useState(() => getDetroitClock());
@@ -103,6 +57,7 @@ export default function App() {
   );
   const [mapExpanded, setMapExpanded] = useState(false);
   const [mapZoom, setMapZoom] = useState(1);
+  const [mapView, setMapView] = useState("3d");
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(getDetroitClock()), 15000);
@@ -276,10 +231,12 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <MapImage
+            <SchoolMapViewer
               schedule={schedule}
               selectedBlock={mapSelectedBlock}
               onSelectBlock={selectBlock}
+              view={mapView}
+              onViewChange={setMapView}
             />
             <div className="map-caption">
               <span className="map-legend"><span className="legend-dot" /> Selected scheduled room</span>
@@ -357,10 +314,12 @@ export default function App() {
             </div>
             <div className="modal-map">
               <div className="zoomed-map" style={{ width: `${mapZoom * 100}%` }}>
-                <MapImage
+                <SchoolMapViewer
                   schedule={schedule}
                   selectedBlock={mapSelectedBlock}
                   onSelectBlock={selectBlock}
+                  view={mapView}
+                  onViewChange={setMapView}
                   expanded
                 />
               </div>
