@@ -208,7 +208,7 @@ export default function App() {
           <section className="panel map-panel" aria-labelledby="map-heading">
             <div className="map-top">
               <div className="map-heading">
-                <div className="section-kicker">STATIC ROOM REFERENCE</div>
+                <div className="section-kicker">INTERACTIVE FLOOR MAP</div>
                 <h2 id="map-heading">School map</h2>
                 <div className="map-subtitle">
                   {mapSelectedBlock
