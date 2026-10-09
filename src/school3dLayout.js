@@ -19,7 +19,7 @@ const row = (
     doorSide,
   }));
 
-const hallway = (id, name, x, z, width, depth, openSides) => ({
+const hallway = (id, name, x, z, width, depth, openSides, angle = 0) => ({
   id,
   name,
   x,
@@ -29,6 +29,7 @@ const hallway = (id, name, x, z, width, depth, openSides) => ({
   category: "hallway",
   doorSide: null,
   openSides,
+  angle,
 });
 
 // Approximate room centers traced from the supplied school floor plan. North is
