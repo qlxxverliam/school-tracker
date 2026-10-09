@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import {
+  schoolMapBounds,
   schoolSpaces,
   selectableSchoolSpaces,
 } from "../school3dLayout.js";
@@ -18,8 +19,10 @@ const FLOOR_COLORS = {
 
 const SELECTED_COLOR = "#c55645";
 const FLOOR_THICKNESS = 0.34;
-const WALL_HEIGHT = 3.25;
+const WALL_HEIGHT = 2.25;
 const WALL_THICKNESS = 0.24;
+const MIN_ZOOM = 0.55;
+const MAX_ZOOM = 4.5;
 
 function vector(x, y, z) {
   return { x, y, z };
@@ -94,7 +97,7 @@ function makeCuboid(x, y, z, width, height, depth, color, role, spaceId = null) 
 }
 
 function makeBuildingModel() {
-  const boxes = makeCuboid(0, -0.73, 3, 114, 1.1, 70, "#cbbd9c", "base");
+  const boxes = [];
 
   for (const space of schoolSpaces) {
     const floorColor = FLOOR_COLORS[space.category] ?? FLOOR_COLORS.classroom;
@@ -157,7 +160,11 @@ function makeBuildingModel() {
 }
 
 function makeCamera(view, width, height) {
-  const target = vector(0, 1.3, 3);
+  const target = vector(
+    (schoolMapBounds.minX + schoolMapBounds.maxX) / 2,
+    1.2,
+    (schoolMapBounds.minZ + schoolMapBounds.maxZ) / 2,
+  );
   const radius = 128 / view.zoom;
   const horizontal = Math.cos(view.pitch) * radius;
   const position = vector(
@@ -226,12 +233,13 @@ export default function SchoolMap3D({
   onUseFlatPlan,
 }) {
   const canvasRef = useRef(null);
-  const viewRef = useRef({ yaw: 0.73, pitch: 0.74, zoom: 1 });
+  const viewRef = useRef({ yaw: 0.73, pitch: 0.92, zoom: 1 });
   const polygonsRef = useRef([]);
   const redrawRef = useRef(null);
   const selectedRoomRef = useRef(selectedRoomId);
   const onSelectRoomRef = useRef(onSelectRoom);
   const [renderError, setRenderError] = useState("");
+  const [zoom, setZoom] = useState(1);
 
   selectedRoomRef.current = selectedRoomId;
   onSelectRoomRef.current = onSelectRoom;
@@ -358,8 +366,7 @@ export default function SchoolMap3D({
           if (b.space.id === currentSelection) return 1;
           return a.anchor.depth - b.anchor.depth;
         });
-      const occupiedLabels = [];
-
+      const placedLabels = [];
       for (const item of labels) {
         const { space, anchor, text } = item;
         if (
@@ -369,47 +376,92 @@ export default function SchoolMap3D({
           anchor.y > height + 20
         ) continue;
         const selected = space.id === currentSelection;
-        const fontSize = Math.max(7, Math.min(13, Math.round(anchor.scale * 3)));
+        const fontSize = Math.max(7, Math.min(12, Math.round(anchor.scale * 2.45)));
         context.font = `700 ${fontSize}px system-ui, sans-serif`;
-        const labelWidth = context.measureText(text).width + (selected ? 15 : 5);
-        const labelHeight = fontSize + (selected ? 9 : 5);
-        const bounds = {
-          left: anchor.x - labelWidth / 2,
-          right: anchor.x + labelWidth / 2,
-          top: anchor.y - labelHeight / 2,
-          bottom: anchor.y + labelHeight / 2,
-        };
-        const overlaps = occupiedLabels.some(
-          (other) =>
-            bounds.left < other.right + 1 &&
-            bounds.right > other.left - 1 &&
-            bounds.top < other.bottom + 1 &&
-            bounds.bottom > other.top - 1,
-        );
-        if (overlaps && !selected) continue;
-
-        if (selected) {
-          const radius = labelHeight / 2;
-          context.beginPath();
-          context.roundRect(
-            bounds.left,
-            bounds.top,
-            labelWidth,
-            labelHeight,
-            radius,
-          );
-          context.fillStyle = SELECTED_COLOR;
-          context.fill();
+        const labelWidth = context.measureText(text).width + (selected ? 12 : 7);
+        const labelHeight = fontSize + (selected ? 7 : 5);
+        let placement = null;
+        const candidateOffsets = [{ x: 0, y: 0 }];
+        for (let radius = 8; radius <= 52; radius += 8) {
+          for (let step = 0; step < 16; step += 1) {
+            const angle = (step * Math.PI) / 8;
+            candidateOffsets.push({
+              x: Math.cos(angle) * radius,
+              y: Math.sin(angle) * radius,
+            });
+          }
         }
+        for (const offset of candidateOffsets) {
+          const x = anchor.x + offset.x;
+          const y = anchor.y + offset.y;
+          const bounds = {
+            left: x - labelWidth / 2,
+            right: x + labelWidth / 2,
+            top: y - labelHeight / 2,
+            bottom: y + labelHeight / 2,
+          };
+          const fits =
+            bounds.left >= 2 &&
+            bounds.right <= width - 2 &&
+            bounds.top >= 2 &&
+            bounds.bottom <= height - 2;
+          const overlaps = placedLabels.some(
+            (other) =>
+              bounds.left < other.right + 2 &&
+              bounds.right > other.left - 2 &&
+              bounds.top < other.bottom + 2 &&
+              bounds.bottom > other.top - 2,
+          );
+          if (fits && !overlaps) {
+            placement = { x, y, bounds, moved: Math.hypot(offset.x, offset.y) > 2 };
+            break;
+          }
+        }
+        if (!placement) {
+          const x = Math.min(width - labelWidth / 2 - 1, Math.max(labelWidth / 2 + 1, anchor.x));
+          const y = Math.min(height - labelHeight / 2 - 1, Math.max(labelHeight / 2 + 1, anchor.y));
+          placement = {
+            x,
+            y,
+            moved: Math.hypot(x - anchor.x, y - anchor.y) > 2,
+            bounds: {
+              left: x - labelWidth / 2,
+              right: x + labelWidth / 2,
+              top: y - labelHeight / 2,
+              bottom: y + labelHeight / 2,
+            },
+          };
+        }
+        placedLabels.push(placement.bounds);
+        if (placement.moved) {
+          context.beginPath();
+          context.moveTo(anchor.x, anchor.y);
+          context.lineTo(placement.x, placement.y);
+          context.strokeStyle = "rgba(69, 77, 62, 0.42)";
+          context.lineWidth = 0.7;
+          context.stroke();
+        }
+        context.beginPath();
+        context.roundRect(
+          placement.bounds.left,
+          placement.bounds.top,
+          labelWidth,
+          labelHeight,
+          labelHeight / 2,
+        );
+        context.fillStyle = selected
+          ? SELECTED_COLOR
+          : "rgba(255, 254, 248, 0.83)";
+        context.fill();
+        context.strokeStyle = selected ? "#963e32" : "rgba(69, 77, 62, 0.2)";
+        context.lineWidth = selected ? 1 : 0.6;
+        context.stroke();
         context.font = `700 ${fontSize}px system-ui, sans-serif`;
         context.textAlign = "center";
         context.textBaseline = "middle";
-        context.lineWidth = selected ? 0 : 3;
-        context.strokeStyle = "rgba(255, 254, 248, 0.94)";
-        context.strokeText(text, anchor.x, anchor.y + 0.5);
+        context.lineWidth = 0;
         context.fillStyle = selected ? "#ffffff" : "#314b43";
-        context.fillText(text, anchor.x, anchor.y + 0.5);
-        occupiedLabels.push(bounds);
+        context.fillText(text, placement.x, placement.y + 0.5);
       }
     };
 
@@ -436,6 +488,7 @@ export default function SchoolMap3D({
       return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
     };
     const onPointerDown = (event) => {
+      event.preventDefault();
       canvas.setPointerCapture?.(event.pointerId);
       pointers.set(event.pointerId, canvasPoint(event));
       if (pointers.size === 1) {
@@ -456,10 +509,11 @@ export default function SchoolMap3D({
       if (pointers.size > 1) {
         const distance = pointerDistance();
         if (pinchStart?.distance > 0 && distance > 0) {
-          view.zoom = Math.min(
-            2.8,
-            Math.max(0.62, pinchStart.zoom * (distance / pinchStart.distance)),
-          );
+          view.zoom = Math.min(MAX_ZOOM, Math.max(
+            MIN_ZOOM,
+            pinchStart.zoom * (distance / pinchStart.distance),
+          ));
+          setZoom(view.zoom);
           requestDraw();
         }
         return;
@@ -506,11 +560,18 @@ export default function SchoolMap3D({
     };
     const onWheel = (event) => {
       event.preventDefault();
-      view.zoom = Math.min(
-        2.8,
-        Math.max(0.62, view.zoom * Math.exp(-event.deltaY * 0.001)),
-      );
+      event.stopPropagation();
+      view.zoom = Math.min(MAX_ZOOM, Math.max(
+        MIN_ZOOM,
+        view.zoom * Math.exp(-event.deltaY * 0.0014),
+      ));
+      setZoom(view.zoom);
       requestDraw();
+    };
+    const onLostPointerCapture = (event) => {
+      pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinchStart = null;
+      if (pointers.size === 0) dragStart = null;
     };
     const onContextMenu = (event) => event.preventDefault();
 
@@ -518,7 +579,9 @@ export default function SchoolMap3D({
     canvas.addEventListener("pointermove", onPointerMove);
     canvas.addEventListener("pointerup", onPointerUp);
     canvas.addEventListener("pointercancel", onPointerCancel);
-    canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("lostpointercapture", onLostPointerCapture);
+    const stage = canvas.parentElement;
+    stage?.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("contextmenu", onContextMenu);
     requestDraw();
 
@@ -529,7 +592,8 @@ export default function SchoolMap3D({
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerCancel);
-      canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("lostpointercapture", onLostPointerCapture);
+      stage?.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("contextmenu", onContextMenu);
       redrawRef.current = null;
       polygonsRef.current = [];
@@ -541,7 +605,16 @@ export default function SchoolMap3D({
   }, [selectedRoomId]);
 
   const resetView = () => {
-    Object.assign(viewRef.current, { yaw: 0.73, pitch: 0.74, zoom: 1 });
+    Object.assign(viewRef.current, { yaw: 0.73, pitch: 0.92, zoom: 1 });
+    setZoom(1);
+    redrawRef.current?.();
+  };
+  const changeZoom = (factor) => {
+    viewRef.current.zoom = Math.min(
+      MAX_ZOOM,
+      Math.max(MIN_ZOOM, viewRef.current.zoom * factor),
+    );
+    setZoom(viewRef.current.zoom);
     redrawRef.current?.();
   };
 
@@ -559,18 +632,38 @@ export default function SchoolMap3D({
         <canvas
           className="school-map3d-canvas"
           ref={canvasRef}
-          aria-label="Interactive 3D cutaway school map. Drag to rotate; use the room selector to choose a room."
+          aria-label="Interactive 3D cutaway school map. Drag to rotate, pinch or scroll to zoom, and use the room selector to choose a room."
         />
-        <button
-          className="map3d-reset"
-          type="button"
-          onClick={resetView}
-          aria-label="Reset 3D map view"
-          title="Reset view"
-        >
-          <RotateCcw size={14} />
-          <span>Reset view</span>
-        </button>
+        <div className="map3d-controls" role="group" aria-label="3D map controls">
+          <button
+            type="button"
+            onClick={() => changeZoom(1.25)}
+            aria-label="Zoom in"
+            title="Zoom in"
+            disabled={zoom >= MAX_ZOOM}
+          >
+            <ZoomIn size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => changeZoom(0.8)}
+            aria-label="Zoom out"
+            title="Zoom out"
+            disabled={zoom <= MIN_ZOOM}
+          >
+            <ZoomOut size={15} />
+          </button>
+          <button
+            type="button"
+            className="map3d-reset"
+            onClick={resetView}
+            aria-label="Reset 3D map view"
+            title="Reset view"
+          >
+            <RotateCcw size={14} />
+            <span>Reset view</span>
+          </button>
+        </div>
         {renderError && (
           <div className="map3d-error" role="status">
             <span>{renderError}</span>

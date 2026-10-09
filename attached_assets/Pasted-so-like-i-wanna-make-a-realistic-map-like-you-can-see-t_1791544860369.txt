@@ -1,0 +1,126 @@
+so like i wanna make a realistic map (like you can see tbe inside of my shcool from a 2d view on a website with room numbers listed) of my school. the school i go to is in niles michigan usa, and uts called brandywine HIGH SCHOOL, GO BOBCATS! also like this will be a website that will have ONLY 2 accounts and will track 2 ppl (me and my friend) using our iphones location. and it will be very accurate and update in real time aswell. the tracking will only start at 6:50 am and end at 2:45 pm on WEEKDAYS. so anything before 6:50 am, after 2:45 pm, or on weekends, the tracker is OFF. and this tracker thing will look like very ios 27 find my. and there will be logins, NO create accounts, just logins. 
+
+and the logins will be (separate):
+
+accound #1 (blake);;
+username:
+blakeissocoolbeans
+
+password:
+Rink4tink4!
+
+account #2 (tate);;
+username:
+tateissomean
+
+password:
+tateismybestfriend
+
+now, when someone logs in, they will see each other on the school map depending on where they are in the school an did the location time is right. also, if someone is looking and logged in, they can click on that person and it will show what class they are supposed to be in and what class they are currently in depending on their location. also, there will be a built in directions button that will show like the blue navigation line like apple maps does, it will also give detailed directions based on the current hallways they need to go through to get there. and also when directions is clicked, give different direction ways they can go to get to each other; include the estimated walking time (based on human traffic and etc [ik sorry youll habe to research when the classes get out; sometimes high school gets out before middle school, so yeah... also include how busy traffic will be. also include where we can choose a class to get directions to; again show different ways we can go and include how long itll take to get there for an estimate. ill list everything you need down below as well. and also, this website will also give push notifications. like for example, if tate is going to class (bc the period ended and we have a 5 min passing period) and he arrives at his nect class he's supposed to go to, send a notification to ONLY BLAKE, NOT TATE: "Tate has arrived at [class name]." same for blake; send to tate only. and if tate doesn't arrive at the right class on time (like hes still in the hallway wlsking tk class, not in the right class), give blake a notification that tate didn't arrive to [class name] on time, he is located near [nearest class hes by from the extra info section of this message]. same for blake; send to tate only. and also if tate arrives to the right class not on time (like hes in the class but he didn't arrive before it started so hes late), send a notification to blake saying "tate arrived to [class name] late." same for blake; send to tate only. and if tate enters, not passes by, a class i listed down below in extra info, send to blake “Tate is visiting [class name].” same for blake, send to tate.
+
+also i wbat this school map to be accurate accurate, like i dont wbat me or tate to js be passing by another class we have and give a notification that we arrived at history. i want it to only give notifications if we actually go in the classroom not just walk by please and thank you!
+
+so to tell whos phone the website will be tracking, the FIRSY phone to login to tates account, is tates phone. the FIRST person to login to BLAKES (me) account will be blakes phone. and as soon as they login, not go on the website, AS SOON as they login to their accounts, ask to track location + send notifications.
+
+
+extra info:
+
+heres our class schedules;
+
+blakes::
+
+band (room number 205; for the detailed map on the web and etc)
+starts at;; 7:45 am
+ends at;; 8:40 am
+
+sped class (room number 319; for the detailed map on the web and etc)
+starts at;; 8:45 am
+ends at;; 9:35 am
+
+science (room number 407; for the detailed map on the web and etc)
+starts at;; 9:40 am
+ends at;; 10:30 am
+
+ela (room number 316; for the detailed map on the web and etc)
+starts at;; 10:35 am
+ends at;; 11:25 am
+
+health part 1 (room number 325; for the detailed map on the web and etc)
+starts at;; 11:30 am
+ends at;; 11:55 am
+
+lunch (room number unknown, you should be able to search up where it is on the map; for the detailed map on the web and etc)
+starts at;; 11:55 am
+ends at;; 12:20 pm
+
+health part 2 (room number 325; for the detailed map on the web and etc)
+starts at;; 12:25 pm
+ends at;; 12:45 pm
+
+pre-algebra (room number 320; for the detailed map on the web and etc)
+starts at;; 12:50 pm
+ends at;; 1:40 pm
+
+history (room number 309; for the detailed map on the web and etc)
+starts at;; 1:45 pm
+ends at;; 2:35 pm
+
+school over (room number theres no room number bc school is over!; for the detailed map on the web and etc)
+starts at;; 2:35 pm
+ends at;; 2:45 pm
+
+tates::
+
+band (room number 205; for the detailed map on the web and etc)
+starts at;; 7:45 am
+ends at;; 8:40 am
+
+sped class (room number 319; for the detailed map on the web and etc)
+starts at;; 8:45 am
+ends at;; 9:35 am
+
+science (room number 407; for the detailed map on the web and etc)
+starts at;; 9:40 am
+ends at;; 10:30 am
+
+ela (room number 316; for the detailed map on the web and etc)
+starts at;; 10:35 am
+ends at;; 11:25
+
+woods (room number 217; for the detailed map on the web and etc)
+starts at;; 11:30 am
+ends at;; 12:20 pm
+
+lunch (room number unknown, you should be able to search up where it is on the map; for the detailed map on the web and etc)
+starts at;; 12:20 pm
+ends at;; 12:45 pm
+
+pre-algebra (room number 320; for the detailed map on the web and etc)
+starts at;; 12:50 pm
+ends at;; 1:40 pm
+
+history (room number 309; for the detailed map on the web and etc)
+starts at;; 1:45 pm
+ends at;; 2:35 pm
+
+school over (room number theres no room number bc school is over!; for the detailed map on the web and etc)
+starts at;; 2:35 pm
+ends at;; 2:45 pm
+
+alsi dint worry abt tge locatioj tracking or ghe direction thing yet!!
+
+
+(i also sent you a map if my school!)
+
+dont worry abt the logins either 
+
+and everything above is already built, js double check everything is correct!
+
+4 problems:
+1; when i try to like zoom in on tbe 3d map, it doesn't zoom. also, when i try to move around, it sometimes just like "lags" and doesn't let me move around freely & smoothly and sometimes when i scroll down on the 3d map, it just scrolls down the page and not the 3d map.. also, some of the rooms aren't visible until i change the angle every time.
+
+2; the 2d mal is supposed to look like the 3d map, but from the top view of it and not moveable, dont js show the paper i sent. the paper i sent was for YOU!
+
+3; all the rooms still aren’t there! like for example, all the 600 room arent on the map!! and also nor the gym or the lecture hall!!! make sure everything is there!!!
+
+4; mot all the building is even im here!! the 3d map is supposed to look like the map if my school i sent!! not a rectangle! my school!!

@@ -1,10 +1,10 @@
 ---
-name: Vercel lockfile registry URLs
-description: Keep npm lockfiles portable between Replit and external deployment builders.
+name: Vercel deployment
+description: Preserve this project's Vercel hosting assumptions and lockfile portability.
 ---
 
-Lockfiles produced in Replit can contain tarball URLs for Replit's internal package mirror. External builders such as Vercel cannot resolve that internal hostname; use canonical public npm registry URLs in the lockfile for packages built externally.
+This project is hosted on Vercel. Keep the app deployable as a regular Vite build, without relying on Replit-only runtime behavior. Lockfiles produced in Replit can contain tarball URLs for Replit's internal package mirror, which Vercel cannot resolve; use canonical public npm registry URLs for packages built externally.
 
-**Why:** Vercel's build environment cannot resolve Replit-only internal DNS names.
+**Why:** The user said this project is hosted on Vercel, and its builder cannot resolve Replit-only internal DNS names.
 
-**How to apply:** Before relying on an external CI or deploy service, scan `package-lock.json` for Replit-internal resolved URLs and ensure each dependency points to a registry that the external builder can reach. Keep package versions and integrity hashes unchanged when only correcting registry hosts.
+**How to apply:** Preserve the Vite build flow and avoid Replit-only production assumptions. Before external builds, scan `package-lock.json` for Replit-internal resolved URLs and ensure each dependency points to a reachable registry. Keep versions and integrity hashes unchanged when correcting registry hosts.

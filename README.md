@@ -16,6 +16,6 @@ To create a production build:
 npm run build
 ```
 
-Schedules and room-marker positions are maintained in `src/scheduleData.js`. Times are shown in Detroit time. The app uses the supplied school map as a static reference; it does not track anyone's location.
+Schedules are maintained in `src/scheduleData.js`. The shared approximate room layout that drives both the top-down and interactive 3D views is in `src/school3dLayout.js`. Times are shown in Detroit time. The supplied school map is a visual reference; the app does not track anyone's location.
 
-The map and named student schedules are sensitive school information. The app has no login or access control, so do not publish it publicly unless the school has approved that broader access.
+The map and named student schedules are sensitive school information. The app has no login or access control, so do not publish it publicly unless the school has approved that broader access. Vercel can build this Vite app with `npm run build` (output directory: `dist`).

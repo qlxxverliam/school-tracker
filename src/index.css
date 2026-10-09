@@ -114,15 +114,34 @@ button:focus-visible { outline: 3px solid #bd4a39; outline-offset: 3px; }
 .map-frame { position: relative; z-index: 1; overflow: hidden; border: 1px solid #d8d5c8; border-radius: 10px; background: #e7e1cd; box-shadow: 0 3px 8px #403f3020; isolation: isolate; }
 .map-stage.flat .map-object::before { display: none; }
 .map-stage.flat .map-frame { border-radius: 11px; box-shadow: none; }
-.map-frame img { width: 100%; height: auto; display: block; }
 .map-frame::after { content: ""; position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(135deg, #eddfbf0c, transparent 60%); }
+.top-down-stage { overflow: hidden; }
+.top-down-frame { overflow: hidden; background: #efeee7; }
+.top-down-plan { width: 100%; height: auto; display: block; }
+.plan-ground { fill: #efeee7; }
+.plan-space { outline: none; }
+.plan-space rect { stroke: #7f8174; stroke-width: .22; vector-effect: non-scaling-stroke; }
+.plan-space-hallway rect { stroke: #b4ae9f; stroke-width: .14; }
+.plan-space-courtyard rect { stroke: #718a61; }
+.plan-space-label { fill: #37483f; font: 700 1.45px 'DM Sans', sans-serif; letter-spacing: .015em; pointer-events: none; }
+.plan-space-detail { fill: #647168; font-size: .86px; font-weight: 600; }
+.plan-space.is-selectable { cursor: pointer; }
+.plan-space.is-selectable:hover rect, .plan-space.is-selectable:focus-visible rect { stroke: #526f60; stroke-width: .5; }
+.plan-space.is-selected rect { fill: #d9a79b !important; stroke: #a54e42; stroke-width: .65; }
+.plan-space.is-selected .plan-space-label { fill: #572d27; }
+.plan-compass { fill: #52665b; font: 700 1.55px 'DM Mono', monospace; }
+.plan-compass path { fill: none; stroke: currentColor; stroke-width: .35; stroke-linecap: round; stroke-linejoin: round; }
 .school-map3d { margin: 0 12px; }
 .map3d-instructions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0 2px 8px; color: #79837a; font-size: 10px; }
 .map3d-accuracy { color: #8a8c7e; font: 500 9px 'DM Mono', monospace; letter-spacing: .035em; text-transform: uppercase; }
-.map3d-stage { position: relative; height: 430px; overflow: hidden; border: 1px solid #d8d5c8; border-radius: 13px; background: #eeeae0; box-shadow: inset 0 1px 2px #242b2010; }
-.school-map3d-canvas { display: block; width: 100%; height: 100%; cursor: grab; outline: none; }
+.map3d-stage { position: relative; height: 430px; overflow: hidden; overscroll-behavior: contain; border: 1px solid #d8d5c8; border-radius: 13px; background: #eeeae0; box-shadow: inset 0 1px 2px #242b2010; }
+.school-map3d-canvas { display: block; width: 100%; height: 100%; cursor: grab; outline: none; touch-action: none; user-select: none; }
 .school-map3d-canvas:active { cursor: grabbing; }
-.map3d-reset { position: absolute; z-index: 2; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 9px; border: 1px solid #d8d9cf; border-radius: 8px; color: #526663; background: #fffefaeb; font-size: 10px; font-weight: 650; cursor: pointer; }
+.map3d-controls { position: absolute; z-index: 2; top: 10px; right: 10px; display: flex; gap: 5px; }
+.map3d-controls button { min-width: 32px; min-height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; border: 1px solid #d8d9cf; border-radius: 8px; color: #526663; background: #fffefaeb; font-size: 10px; font-weight: 650; cursor: pointer; }
+.map3d-controls button:hover:not(:disabled) { background: #fffefa; border-color: #bacabe; }
+.map3d-controls button:disabled { opacity: .45; cursor: default; }
+.map3d-reset { position: static; }
 .map3d-reset:hover { background: #fffefa; border-color: #bacabe; }
 .map3d-room-tools { display: grid; grid-template-columns: minmax(155px, .82fr) minmax(0, 1.18fr); gap: 10px; margin-top: 10px; }
 .map3d-room-picker { display: flex; flex-direction: column; gap: 5px; color: #7b8178; font: 500 9px 'DM Mono', monospace; letter-spacing: .035em; text-transform: uppercase; }

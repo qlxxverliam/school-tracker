@@ -1,7 +1,157 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Map } from "lucide-react";
-import { roomLocations } from "../scheduleData.js";
+import {
+  schoolMapBounds,
+  schoolSpaces,
+  selectableSchoolSpaces,
+} from "../school3dLayout.js";
 import SchoolMap3D from "./SchoolMap3D.jsx";
+
+const SPACE_COLORS = {
+  classroom: "#e9dfca",
+  special: "#e5d8b9",
+  shop: "#d9e0d9",
+  commons: "#d3e0d3",
+  athletics: "#d3dce7",
+  arts: "#ead5c7",
+  courtyard: "#a7bb91",
+  hallway: "#d9d3c2",
+};
+
+function shortLabel(space) {
+  if (/^\d+$/.test(space.id)) return space.id;
+  if (space.id === "cafeteria") return "CAFETERIA";
+  if (space.id.startsWith("courtyard-")) return "COURTYARD";
+  if (space.id === "boys-locker") return "BOYS";
+  if (space.id === "girls-locker") return "GIRLS";
+  if (space.id === "stage") return "STAGE";
+  if (space.id === "kit") return "KIT";
+  return space.name.toUpperCase();
+}
+
+function detailLabel(space) {
+  if (!/^\d+$/.test(space.id) && space.name.includes(" · ")) {
+    return space.name.split(" · ").slice(1).join(" · ").toUpperCase();
+  }
+  if (["200", "203", "205", "500", "602", "700", "707"].includes(space.id)) {
+    return space.name.split(" · ").slice(1).join(" · ").toUpperCase();
+  }
+  return "";
+}
+
+function TopDownPlan({ selectedRoomId, onSelectRoom }) {
+  const selectableIds = new Set(selectableSchoolSpaces.map((space) => space.id));
+  const margin = 3;
+  const width = schoolMapBounds.maxX - schoolMapBounds.minX + margin * 2;
+  const height = schoolMapBounds.maxZ - schoolMapBounds.minZ + margin * 2;
+  const viewBox = [
+    schoolMapBounds.minX - margin,
+    -schoolMapBounds.maxZ - margin,
+    width,
+    height,
+  ].join(" ");
+  const orderedSpaces = [
+    ...schoolSpaces.filter((space) => space.category === "hallway"),
+    ...schoolSpaces.filter((space) => space.category !== "hallway"),
+  ];
+
+  const selectWithKeyboard = (event, id) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    onSelectRoom(id);
+  };
+
+  return (
+    <div className="map-stage flat top-down-stage">
+      <div className="map-frame top-down-frame">
+        <svg
+          className="top-down-plan"
+          viewBox={viewBox}
+          role="group"
+          aria-label="Approximate top-down school floor plan. Select a room to highlight it."
+        >
+          <title>Brandywine school top-down room plan</title>
+          <rect
+            className="plan-ground"
+            x={schoolMapBounds.minX - margin}
+            y={-schoolMapBounds.maxZ - margin}
+            width={width}
+            height={height}
+            rx="2"
+          />
+          {orderedSpaces.map((space) => {
+            const isSelectable = selectableIds.has(space.id);
+            const selected = space.id === selectedRoomId;
+            const x = space.x - space.width / 2;
+            const y = -space.z - space.depth / 2;
+            const secondaryLabel = detailLabel(space);
+            const label = shortLabel(space);
+
+            return (
+              <g
+                key={space.id}
+                className={[
+                  "plan-space",
+                  `plan-space-${space.category}`,
+                  selected ? "is-selected" : "",
+                  isSelectable ? "is-selectable" : "",
+                ].filter(Boolean).join(" ")}
+                role={isSelectable ? "button" : undefined}
+                tabIndex={isSelectable ? 0 : undefined}
+                aria-label={isSelectable ? space.name : undefined}
+                aria-pressed={isSelectable ? selected : undefined}
+                onClick={isSelectable ? () => onSelectRoom(space.id) : undefined}
+                onKeyDown={isSelectable
+                  ? (event) => selectWithKeyboard(event, space.id)
+                  : undefined}
+              >
+                <title>{space.name}</title>
+                <rect
+                  x={x}
+                  y={y}
+                  width={space.width}
+                  height={space.depth}
+                  rx={space.category === "hallway" ? 0.45 : 0.28}
+                  fill={SPACE_COLORS[space.category] ?? SPACE_COLORS.classroom}
+                />
+                {isSelectable && (
+                  <text
+                    className="plan-space-label"
+                    x={space.x}
+                    y={space.z === 0 ? 0 : -space.z}
+                    textAnchor="middle"
+                    dominantBaseline={secondaryLabel ? "central" : "middle"}
+                  >
+                    <tspan>{label}</tspan>
+                    {secondaryLabel && (
+                      <tspan
+                        className="plan-space-detail"
+                        x={space.x}
+                        dy="1.25"
+                      >
+                        {secondaryLabel}
+                      </tspan>
+                    )}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+          <g className="plan-compass" aria-hidden="true">
+            <path d={`M ${schoolMapBounds.maxX - 2.5} ${-schoolMapBounds.maxZ + 5} l 0 -3 l -1.2 1.2 m 1.2 -1.2 l 1.2 1.2`} />
+            <text
+              x={schoolMapBounds.maxX - 2.5}
+              y={-schoolMapBounds.maxZ + 0.7}
+              textAnchor="middle"
+            >
+              N
+            </text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 export function MapViewToggle({ view, onChange }) {
   return (
@@ -36,10 +186,6 @@ export default function SchoolMapViewer({
   onViewChange,
   expanded = false,
 }) {
-  const availableRooms = useMemo(() => {
-    const rooms = new Set(schedule.map((block) => block.room ?? block.place).filter(Boolean));
-    return Object.entries(roomLocations).filter(([id]) => rooms.has(id));
-  }, [schedule]);
   const scheduledRoomId = selectedBlock?.room ?? selectedBlock?.place ?? "";
   const [selectedMapRoomId, setSelectedMapRoomId] = useState(scheduledRoomId);
 
@@ -64,7 +210,7 @@ export default function SchoolMapViewer({
     <div className="school-map-viewer">
       <div className="viewer-toolbar">
         <span className="viewer-mode-note">
-          {view === "3d" ? "Interactive room model" : "Original floor plan"}
+          {view === "3d" ? "Interactive room model" : "Top-down room plan"}
         </span>
         <MapViewToggle view={view} onChange={onViewChange} />
       </div>
@@ -75,39 +221,10 @@ export default function SchoolMapViewer({
           onUseFlatPlan={() => onViewChange("flat")}
         />
       ) : (
-        <div className="map-stage flat">
-          <div className="map-object">
-            <div className="map-frame">
-              <img
-                src="/school-map.jpg"
-                alt="Original Brandywine Middle/High School floor plan showing the printed room labels and room numbers."
-                draggable="false"
-              />
-              {availableRooms.map(([roomId, room]) => {
-                const block = matchingBlock(roomId);
-                const isActive =
-                  selectedBlock &&
-                  (selectedBlock.room === roomId || selectedBlock.place === roomId);
-                return (
-                  <button
-                    key={roomId}
-                    type="button"
-                    className={`room-marker${isActive ? " active" : ""}`}
-                    style={{ "--x": `${room.x}%`, "--y": `${room.y}%` }}
-                    aria-label={`Select ${room.label}${isActive ? ", selected scheduled room" : ""}`}
-                    aria-pressed={Boolean(isActive)}
-                    title={`${room.label} · select scheduled class`}
-                    onClick={() => onSelectBlock(block)}
-                  >
-                    <span className="marker-core" aria-hidden="true" />
-                    <span className="marker-label">{room.label}</span>
-                  </button>
-                );
-              })}
-              {expanded && <span className="sr-only">Expanded original floor plan</span>}
-            </div>
-          </div>
-        </div>
+        <TopDownPlan
+          selectedRoomId={selectedMapRoomId}
+          onSelectRoom={selectRoom}
+        />
       )}
     </div>
   );

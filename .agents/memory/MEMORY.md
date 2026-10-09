@@ -1,3 +1,3 @@
-- [Vercel lockfile registry URLs](vercel-lockfile-registry-urls.md) — keep package tarball URLs on the public npm registry for external CI.
+- [Vercel deployment](vercel-lockfile-registry-urls.md) — this project is hosted on Vercel; keep its build and lockfile portable outside Replit.
 - [Future location sharing](location-sharing-intent.md) — location tracking is a later feature for both map users, separate from schedule highlights.
 - [3D school map expectation](school-map-3d-expectation.md) — the user means a rotatable room cutaway, not a tilted photo; geometry may be approximate until measured plans exist.
