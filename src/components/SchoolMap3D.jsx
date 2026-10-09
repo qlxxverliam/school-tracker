@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import {
+  getSpaceWallSegments,
   schoolMapBounds,
   schoolSpaces,
   selectableSchoolSpaces,
@@ -19,8 +20,8 @@ const FLOOR_COLORS = {
 
 const SELECTED_COLOR = "#c55645";
 const FLOOR_THICKNESS = 0.34;
-const WALL_HEIGHT = 2.25;
-const WALL_THICKNESS = 0.24;
+const WALL_HEIGHT = 5.2;
+const WALL_THICKNESS = 0.32;
 const MIN_ZOOM = 0.55;
 const MAX_ZOOM = 4.5;
 
@@ -115,46 +116,31 @@ function makeBuildingModel() {
       ),
     );
 
-    if (space.walls === false || space.category === "hallway") continue;
+    if (space.walls === false) continue;
 
     const wallColor =
-      space.category === "classroom" ? "#f2eadb" : "#e9e2d2";
+      space.category === "hallway" ? "#bdb7a9" : "#d9d2c3";
     const wallY = FLOOR_THICKNESS / 2 + WALL_HEIGHT / 2;
-    boxes.push(
-      ...makeCuboid(
-        space.x,
-        wallY,
-        space.z - space.depth / 2,
-        space.width,
-        WALL_HEIGHT,
-        WALL_THICKNESS,
-        wallColor,
-        "wall",
-        space.id,
-      ),
-      ...makeCuboid(
-        space.x - space.width / 2,
-        wallY,
-        space.z,
-        WALL_THICKNESS,
-        WALL_HEIGHT,
-        space.depth,
-        wallColor,
-        "wall",
-        space.id,
-      ),
-      ...makeCuboid(
-        space.x + space.width / 2,
-        wallY,
-        space.z,
-        WALL_THICKNESS,
-        WALL_HEIGHT,
-        space.depth,
-        wallColor,
-        "wall",
-        space.id,
-      ),
-    );
+    for (const segment of getSpaceWallSegments(space)) {
+      const segmentWidth = Math.hypot(
+        segment.x2 - segment.x1,
+        segment.z2 - segment.z1,
+      );
+      const horizontal = Math.abs(segment.z2 - segment.z1) < 0.001;
+      boxes.push(
+        ...makeCuboid(
+          (segment.x1 + segment.x2) / 2,
+          wallY,
+          (segment.z1 + segment.z2) / 2,
+          horizontal ? segmentWidth : WALL_THICKNESS,
+          WALL_HEIGHT,
+          horizontal ? WALL_THICKNESS : segmentWidth,
+          wallColor,
+          "wall",
+          space.id,
+        ),
+      );
+    }
   }
   return boxes;
 }
@@ -165,7 +151,23 @@ function makeCamera(view, width, height) {
     1.2,
     (schoolMapBounds.minZ + schoolMapBounds.maxZ) / 2,
   );
-  const radius = 128 / view.zoom;
+  const worldWidth = schoolMapBounds.maxX - schoolMapBounds.minX;
+  const worldDepth = schoolMapBounds.maxZ - schoolMapBounds.minZ;
+  const planeWidth =
+    Math.abs(Math.cos(view.yaw)) * worldWidth +
+    Math.abs(Math.sin(view.yaw)) * worldDepth;
+  const planeHeight =
+    Math.sin(view.pitch) *
+    (Math.abs(Math.sin(view.yaw)) * worldWidth +
+      Math.abs(Math.cos(view.yaw)) * worldDepth) +
+    WALL_HEIGHT;
+  const focalLength = height * 1.12;
+  const radius =
+    Math.max(
+      (focalLength * planeWidth) / (width * 0.82),
+      (focalLength * planeHeight) / (height * 0.74),
+      96,
+    ) / view.zoom;
   const horizontal = Math.cos(view.pitch) * radius;
   const position = vector(
     target.x + Math.sin(view.yaw) * horizontal,
@@ -182,7 +184,7 @@ function makeCamera(view, width, height) {
     up,
     centerX: width / 2,
     centerY: height * 0.54,
-    focalLength: height * 1.12,
+    focalLength,
   };
 }
 
@@ -315,6 +317,7 @@ export default function SchoolMap3D({
           color: shadeColor(baseColor, face.shade),
           selected: face.spaceId === currentSelection && face.role === "floor",
           top: face.top,
+          role: face.role,
           spaceId: face.spaceId,
         });
 
@@ -344,10 +347,12 @@ export default function SchoolMap3D({
         context.fill();
         context.strokeStyle = face.selected
           ? "#963e32"
-          : face.top
-            ? "rgba(69, 77, 62, 0.34)"
-            : "rgba(70, 72, 62, 0.18)";
-        context.lineWidth = face.selected ? 1.7 : 0.8;
+          : face.role === "wall"
+            ? "rgba(55, 58, 51, 0.52)"
+            : face.top
+              ? "rgba(69, 77, 62, 0.42)"
+              : "rgba(70, 72, 62, 0.2)";
+        context.lineWidth = face.selected ? 1.7 : face.role === "wall" ? 1 : 0.8;
         context.stroke();
       }
       polygonsRef.current = roomPolygons;
@@ -376,10 +381,10 @@ export default function SchoolMap3D({
           anchor.y > height + 20
         ) continue;
         const selected = space.id === currentSelection;
-        const fontSize = Math.max(7, Math.min(12, Math.round(anchor.scale * 2.45)));
+        const fontSize = Math.max(6, Math.min(12, Math.round(anchor.scale * 2.45)));
         context.font = `700 ${fontSize}px system-ui, sans-serif`;
-        const labelWidth = context.measureText(text).width + (selected ? 12 : 7);
-        const labelHeight = fontSize + (selected ? 7 : 5);
+        const labelWidth = context.measureText(text).width + (selected ? 8 : 3);
+        const labelHeight = fontSize + (selected ? 5 : 3);
         let placement = null;
         const candidateOffsets = [{ x: 0, y: 0 }];
         for (let radius = 8; radius <= 52; radius += 8) {

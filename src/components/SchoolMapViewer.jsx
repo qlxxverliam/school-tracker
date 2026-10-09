@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Map } from "lucide-react";
 import {
+  getSpaceWallSegments,
   schoolMapBounds,
   schoolSpaces,
   selectableSchoolSpaces,
@@ -46,7 +47,7 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
   const height = schoolMapBounds.maxZ - schoolMapBounds.minZ + margin * 2;
   const viewBox = [
     schoolMapBounds.minX - margin,
-    -schoolMapBounds.maxZ - margin,
+    schoolMapBounds.minZ - margin,
     width,
     height,
   ].join(" ");
@@ -74,7 +75,7 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
           <rect
             className="plan-ground"
             x={schoolMapBounds.minX - margin}
-            y={-schoolMapBounds.maxZ - margin}
+            y={schoolMapBounds.minZ - margin}
             width={width}
             height={height}
             rx="2"
@@ -83,9 +84,10 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
             const isSelectable = selectableIds.has(space.id);
             const selected = space.id === selectedRoomId;
             const x = space.x - space.width / 2;
-            const y = -space.z - space.depth / 2;
+            const y = space.z - space.depth / 2;
             const secondaryLabel = detailLabel(space);
             const label = shortLabel(space);
+            const wallSegments = getSpaceWallSegments(space);
 
             return (
               <g
@@ -114,11 +116,18 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
                   rx={space.category === "hallway" ? 0.45 : 0.28}
                   fill={SPACE_COLORS[space.category] ?? SPACE_COLORS.classroom}
                 />
+                {wallSegments.map((segment, index) => (
+                  <path
+                    key={`${space.id}-wall-${index}`}
+                    className={`plan-wall${space.category === "hallway" ? " plan-wall-hallway" : ""}`}
+                    d={`M ${segment.x1} ${segment.z1} L ${segment.x2} ${segment.z2}`}
+                  />
+                ))}
                 {isSelectable && (
                   <text
                     className="plan-space-label"
                     x={space.x}
-                    y={space.z === 0 ? 0 : -space.z}
+                    y={space.z}
                     textAnchor="middle"
                     dominantBaseline={secondaryLabel ? "central" : "middle"}
                   >
@@ -138,11 +147,11 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
             );
           })}
           <g className="plan-compass" aria-hidden="true">
-            <path d={`M ${schoolMapBounds.maxX - 2.5} ${-schoolMapBounds.maxZ + 5} l 0 -3 l -1.2 1.2 m 1.2 -1.2 l 1.2 1.2`} />
+            <path d={`M ${schoolMapBounds.maxX - 1} ${schoolMapBounds.maxZ - 2.5} l -3 0 l 1.2 -1.2 m -1.2 1.2 l 1.2 1.2`} />
             <text
-              x={schoolMapBounds.maxX - 2.5}
-              y={-schoolMapBounds.maxZ + 0.7}
-              textAnchor="middle"
+              x={schoolMapBounds.maxX - 2.2}
+              y={schoolMapBounds.maxZ - 1.3}
+              textAnchor="start"
             >
               N
             </text>

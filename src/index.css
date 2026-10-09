@@ -120,14 +120,16 @@ button:focus-visible { outline: 3px solid #bd4a39; outline-offset: 3px; }
 .top-down-plan { width: 100%; height: auto; display: block; }
 .plan-ground { fill: #efeee7; }
 .plan-space { outline: none; }
-.plan-space rect { stroke: #7f8174; stroke-width: .22; vector-effect: non-scaling-stroke; }
-.plan-space-hallway rect { stroke: #b4ae9f; stroke-width: .14; }
+.plan-space rect { stroke: none; }
+.plan-wall { fill: none; stroke: #69675d; stroke-width: 1.2px; stroke-linecap: square; vector-effect: non-scaling-stroke; pointer-events: none; }
+.plan-wall-hallway { stroke: #807a6d; stroke-width: 1.35px; }
 .plan-space-courtyard rect { stroke: #718a61; }
-.plan-space-label { fill: #37483f; font: 700 1.45px 'DM Sans', sans-serif; letter-spacing: .015em; pointer-events: none; }
-.plan-space-detail { fill: #647168; font-size: .86px; font-weight: 600; }
+.plan-space-label { fill: #37483f; font: 700 1.8px 'DM Sans', sans-serif; letter-spacing: .015em; pointer-events: none; }
+.plan-space-detail { fill: #647168; font-size: 1.05px; font-weight: 600; }
 .plan-space.is-selectable { cursor: pointer; }
-.plan-space.is-selectable:hover rect, .plan-space.is-selectable:focus-visible rect { stroke: #526f60; stroke-width: .5; }
-.plan-space.is-selected rect { fill: #d9a79b !important; stroke: #a54e42; stroke-width: .65; }
+.plan-space.is-selectable:hover rect, .plan-space.is-selectable:focus-visible rect { stroke: #526f60; stroke-width: .5; vector-effect: non-scaling-stroke; }
+.plan-space.is-selected rect { fill: #d9a79b !important; }
+.plan-space.is-selected .plan-wall { stroke: #a54e42; }
 .plan-space.is-selected .plan-space-label { fill: #572d27; }
 .plan-compass { fill: #52665b; font: 700 1.55px 'DM Mono', monospace; }
 .plan-compass path { fill: none; stroke: currentColor; stroke-width: .35; stroke-linecap: round; stroke-linejoin: round; }

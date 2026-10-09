@@ -3,8 +3,8 @@ name: 3D school map expectation
 description: The user's intended meaning of a 3D school map based on the supplied floor plan.
 ---
 
-The user expects a genuine interactive 3D map-style view with classroom spaces exposed, not a 2D floor-plan image tilted with CSS. The supplied photo can guide room layout but does not provide measurement data, so any 3D geometry derived from it must be described as approximate until an authoritative measured plan is available.
+Build both map views from the same layout based on the supplied floor-plan photo. Preserve the photo's room arrangement and north-arrow orientation, and show connected corridors with visible partition walls and door openings in the 3D cutaway. The photo is not measured data, so describe dimensions and routes as approximate until an authoritative plan is available.
 
-**Why:** The user explicitly corrected the tilted-photo version and compared the desired result to a map app's 3D buildings, with classrooms visible.
+**Why:** The user compared both map views to the school's plan and aerial image, and said students need to recognize the building to use the app for directions.
 
-**How to apply:** Keep a rotatable, zoomable room cutaway and retain the source floor plan as the exact 2D reference. Do not describe an angled image as 3D.
+**How to apply:** Keep the 3D model rotatable and zoomable, keep its layout synchronized with the 2D plan, and do not describe an angled image as 3D. Be explicit about uncertainty until the geometry is verified.
