@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 import {
+  getSpaceFootprint,
   getSpaceWallSegments,
   schoolMapBounds,
   schoolSpaces,
@@ -66,31 +67,43 @@ function shadeColor(hex, factor) {
   return `rgb(${red} ${green} ${blue})`;
 }
 
-function makeCuboid(x, y, z, width, height, depth, color, role, spaceId = null) {
-  const points = [
-    vector(x - width / 2, y - height / 2, z - depth / 2),
-    vector(x + width / 2, y - height / 2, z - depth / 2),
-    vector(x + width / 2, y + height / 2, z - depth / 2),
-    vector(x - width / 2, y + height / 2, z - depth / 2),
-    vector(x - width / 2, y - height / 2, z + depth / 2),
-    vector(x + width / 2, y - height / 2, z + depth / 2),
-    vector(x + width / 2, y + height / 2, z + depth / 2),
-    vector(x - width / 2, y + height / 2, z + depth / 2),
-  ];
-  const definitions = [
-    { indices: [0, 1, 2, 3], normal: vector(0, 0, -1), shade: 0.78 },
-    { indices: [4, 7, 6, 5], normal: vector(0, 0, 1), shade: 0.88 },
-    { indices: [0, 3, 7, 4], normal: vector(-1, 0, 0), shade: 0.72 },
-    { indices: [1, 5, 6, 2], normal: vector(1, 0, 0), shade: 0.82 },
-    { indices: [3, 2, 6, 7], normal: vector(0, 1, 0), shade: 1.08, top: true },
-    { indices: [0, 4, 5, 1], normal: vector(0, -1, 0), shade: 0.6 },
+function makePrism(footprint, y, height, color, role, spaceId = null) {
+  const lowerY = y - height / 2;
+  const upperY = y + height / 2;
+  const center = footprint.reduce(
+    (sum, point) => ({ x: sum.x + point.x, z: sum.z + point.z }),
+    { x: 0, z: 0 },
+  );
+  center.x /= footprint.length;
+  center.z /= footprint.length;
+  const lower = footprint.map((point) => vector(point.x, lowerY, point.z));
+  const upper = footprint.map((point) => vector(point.x, upperY, point.z));
+  const faces = [
+    { points: upper, normal: vector(0, 1, 0), shade: 1.08, top: true },
+    { points: lower, normal: vector(0, -1, 0), shade: 0.6 },
   ];
 
-  return definitions.map((definition) => ({
-    points: definition.indices.map((index) => points[index]),
-    normal: definition.normal,
-    shade: definition.shade,
-    top: Boolean(definition.top),
+  for (let index = 0; index < footprint.length; index += 1) {
+    const start = footprint[index];
+    const end = footprint[(index + 1) % footprint.length];
+    const dx = end.x - start.x;
+    const dz = end.z - start.z;
+    const length = Math.hypot(dx, dz) || 1;
+    let normal = vector(dz / length, 0, -dx / length);
+    const midpoint = { x: (start.x + end.x) / 2, z: (start.z + end.z) / 2 };
+    const outward = (midpoint.x - center.x) * normal.x + (midpoint.z - center.z) * normal.z;
+    if (outward < 0) normal = scale(normal, -1);
+    const sideShade = Math.abs(normal.x) > Math.abs(normal.z) ? 0.78 : 0.88;
+    faces.push({
+      points: [lower[index], lower[(index + 1) % lower.length], upper[(index + 1) % upper.length], upper[index]],
+      normal,
+      shade: sideShade,
+    });
+  }
+
+  return faces.map((face) => ({
+    ...face,
+    top: Boolean(face.top),
     color,
     role,
     spaceId,
@@ -103,13 +116,10 @@ function makeBuildingModel() {
   for (const space of schoolSpaces) {
     const floorColor = FLOOR_COLORS[space.category] ?? FLOOR_COLORS.classroom;
     boxes.push(
-      ...makeCuboid(
-        space.x,
+      ...makePrism(
+        getSpaceFootprint(space),
         0,
-        space.z,
-        space.width,
         FLOOR_THICKNESS,
-        space.depth,
         floorColor,
         "floor",
         space.id,
@@ -126,15 +136,19 @@ function makeBuildingModel() {
         segment.x2 - segment.x1,
         segment.z2 - segment.z1,
       );
-      const horizontal = Math.abs(segment.z2 - segment.z1) < 0.001;
+      const normalX = (segment.z2 - segment.z1) / segmentWidth;
+      const normalZ = -(segment.x2 - segment.x1) / segmentWidth;
+      const halfThickness = WALL_THICKNESS / 2;
       boxes.push(
-        ...makeCuboid(
-          (segment.x1 + segment.x2) / 2,
+        ...makePrism(
+          [
+            { x: segment.x1 + normalX * halfThickness, z: segment.z1 + normalZ * halfThickness },
+            { x: segment.x2 + normalX * halfThickness, z: segment.z2 + normalZ * halfThickness },
+            { x: segment.x2 - normalX * halfThickness, z: segment.z2 - normalZ * halfThickness },
+            { x: segment.x1 - normalX * halfThickness, z: segment.z1 - normalZ * halfThickness },
+          ],
           wallY,
-          (segment.z1 + segment.z2) / 2,
-          horizontal ? segmentWidth : WALL_THICKNESS,
           WALL_HEIGHT,
-          horizontal ? WALL_THICKNESS : segmentWidth,
           wallColor,
           "wall",
           space.id,

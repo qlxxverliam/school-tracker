@@ -3,7 +3,7 @@ name: 3D school map expectation
 description: The user's intended meaning of a 3D school map based on the supplied floor plan.
 ---
 
-Build both map views from the same layout based on the supplied floor-plan photo. Preserve the photo's room arrangement and north-arrow orientation, and show connected corridors with visible partition walls and door openings in the 3D cutaway. The photo is not measured data, so describe dimensions and routes as approximate until an authoritative plan is available.
+Build both map views from the same layout based on the supplied floor-plan photo. Preserve its room arrangement and north-arrow orientation, include diagonal hallway runs where shown, and keep room footprints separate rather than overlapping. Show connected corridors with visible partition walls and door openings in the 3D cutaway. The photo is not measured data, so describe dimensions and routes as approximate until an authoritative plan is available.
 
 **Why:** The user compared both map views to the school's plan and aerial image, and said students need to recognize the building to use the app for directions.
 

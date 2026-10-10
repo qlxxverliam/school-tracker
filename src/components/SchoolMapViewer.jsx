@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Map } from "lucide-react";
 import {
+  getSpaceFootprint,
   getSpaceWallSegments,
   schoolMapBounds,
   schoolSpaces,
@@ -87,6 +88,7 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
             const y = space.z - space.depth / 2;
             const secondaryLabel = detailLabel(space);
             const label = shortLabel(space);
+            const footprint = getSpaceFootprint(space);
             const wallSegments = getSpaceWallSegments(space);
 
             return (
@@ -108,14 +110,21 @@ function TopDownPlan({ selectedRoomId, onSelectRoom }) {
                   : undefined}
               >
                 <title>{space.name}</title>
-                <rect
-                  x={x}
-                  y={y}
-                  width={space.width}
-                  height={space.depth}
-                  rx={space.category === "hallway" ? 0.45 : 0.28}
-                  fill={SPACE_COLORS[space.category] ?? SPACE_COLORS.classroom}
-                />
+                {space.angle ? (
+                  <polygon
+                    points={footprint.map((point) => `${point.x},${point.z}`).join(" ")}
+                    fill={SPACE_COLORS[space.category] ?? SPACE_COLORS.classroom}
+                  />
+                ) : (
+                  <rect
+                    x={x}
+                    y={y}
+                    width={space.width}
+                    height={space.depth}
+                    rx={space.category === "hallway" ? 0.45 : 0.28}
+                    fill={SPACE_COLORS[space.category] ?? SPACE_COLORS.classroom}
+                  />
+                )}
                 {wallSegments.map((segment, index) => (
                   <path
                     key={`${space.id}-wall-${index}`}
